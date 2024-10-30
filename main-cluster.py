@@ -4,13 +4,13 @@ import csv
 def update_rds_cluster_tag_if_exists(rds_cluster_id):
     # Inicializa o cliente do RDS
     rds_client = boto3.client('rds')
-    region = 'us-east-1'  # Substitua pela região correta
-    account_id = '471112936182'  # Substitua pelo ID da sua conta
+    REGION = 'us-east-1'  # Substitua pela região correta
+    ACCOUNT_ID = '471112936182'  # Substitua pelo ID da sua conta
     
     try:
         # Obtém as tags existentes para o cluster RDS
         response = rds_client.list_tags_for_resource(
-            ResourceName=f'arn:aws:rds:REGION:ACCOUNT_ID:cluster:{rds_cluster_id}'  # Substitua REGION e ACCOUNT_ID
+            ResourceName=f'arn:aws:rds:{REGION}:{ACCOUNT_ID}:cluster:{rds_cluster_id}'  # Substitua REGION e ACCOUNT_ID
         )
         current_tags = response['TagList']
         
@@ -23,7 +23,7 @@ def update_rds_cluster_tag_if_exists(rds_cluster_id):
             
             # Aplica a tag atualizada no cluster RDS
             rds_client.add_tags_to_resource(
-                ResourceName=f'arn:aws:rds:REGION:ACCOUNT_ID:cluster:{rds_cluster_id}',  # Substitua REGION e ACCOUNT_ID
+                ResourceName=f'arn:aws:rds:{REGION}:{ACCOUNT_ID}:cluster:{rds_cluster_id}',  # Substitua REGION e ACCOUNT_ID
                 Tags=updated_tags
             )
             print(f"Tag 'Schedule' atualizada para 'running' no cluster {rds_cluster_id}")
