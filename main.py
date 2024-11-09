@@ -1,4 +1,5 @@
 '''
+CHANGE TAG SCHEDULE RDS CLUSTER
 O  intuito desse script é verificar se o cluster está com a tag Schedule com o valor running, caso não esteja, ele irá atualizar a tag para running.
 Os parâmetros que devem ser alterados são:
 - account_id: ID da conta AWS
@@ -7,6 +8,7 @@ Os parâmetros que devem ser alterados são:
 - profile_name: Nome do profile que será utilizado para realizar a autenticação na AWS
 - tag_key: Nome da tag que será verificada
 - tag_value: Valor da tag que será verificada
+- tag_value_update: Valor que a tag será atualizada caso não esteja com o valor correto
 '''
 
 import boto3
@@ -21,6 +23,7 @@ def update_tag_schedule(client, region, rds_cluster_id, desired_tag_value):
     try:
         response = client.list_tags_for_resource(
             ResourceName=f'arn:aws:rds:{region}:{account_id}:db:{rds_cluster_id}'
+            # ResourceName=f'arn:aws:rds:{region}:{account_id}:cluster:{rds_cluster_id}'
         )
         current_tags = response['TagList']
         
