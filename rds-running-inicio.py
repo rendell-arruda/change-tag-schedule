@@ -13,9 +13,10 @@ import boto3
 account_id = "266549158321"
 regions = ["us-east-1"]
 list__clusters_rds = ["rds-test-tag-schedule"]
+desired_tag_value = "stopped"
 
 
-def update_tag_schedule(client, region, rds_cluster_id):
+def update_tag_schedule(client, region, rds_cluster_id, desired_tag_value):
     # faz o descibre do cluster:
     try:
         response = client.list_tags_for_resource(
@@ -26,13 +27,13 @@ def update_tag_schedule(client, region, rds_cluster_id):
         schedule_tag = next((tag for tag in current_tags if tag['Key'] == 'Schedule'), None)
         
         if schedule_tag:
-            updated_tags = [{'Key': 'Schedule', 'Value': 'running'}]
+            updated_tags = [{'Key': 'Schedule', 'Value': desired_tag_value}]
             client.add_tags_to_resource(
                 ResourceName=f'arn:aws:rds:{region}:{account_id}:db:{rds_cluster_id}',
                 # ResourceName=f'arn:aws:rds:{region}:{account_id}:cluster:{rds_cluster_id}',
                 Tags=updated_tags
             )
-            print(f"Tag 'Schedule' atualizada para 'running' no cluster {rds_cluster_id} na região {region}")
+            print(f"Tag 'Schedule' atualizada para {desired_tag_value} no cluster {rds_cluster_id} na região {region}")
         else:
             print(f"O cluster {rds_cluster_id} na região {region} não possui a tag 'Schedule', sem atualização necessária.")
         
@@ -60,7 +61,7 @@ def lambda_handler(event, context):
     
     for region in regions:
         for rds_cluster_id in list__clusters_rds:
-            update_tag_schedule(client, region, rds_cluster_id)
+            update_tag_schedule(client, region, rds_cluster_id, desired_tag_value)
 
         
         
