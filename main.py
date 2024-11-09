@@ -14,8 +14,8 @@ Os parâmetros que devem ser alterados são:
 import boto3
 account_id = "266549158321"
 regions = ["us-east-1"]
-list__clusters_rds = ["rds-test-tag-schedule"]
-desired_tag_value = "stopped"
+list__clusters_rds = ["rds-test-tag-schedule", "cluster-fake-cartoes"]
+desired_tag_value = "sp-office-hours3"
 
 
 def update_tag_schedule(client, region, rds_cluster_id, desired_tag_value):
@@ -23,7 +23,6 @@ def update_tag_schedule(client, region, rds_cluster_id, desired_tag_value):
     try:
         response = client.list_tags_for_resource(
             ResourceName=f'arn:aws:rds:{region}:{account_id}:db:{rds_cluster_id}'
-            # ResourceName=f'arn:aws:rds:{region}:{account_id}:cluster:{rds_cluster_id}'
         )
         current_tags = response['TagList']
         
@@ -36,9 +35,9 @@ def update_tag_schedule(client, region, rds_cluster_id, desired_tag_value):
                 # ResourceName=f'arn:aws:rds:{region}:{account_id}:cluster:{rds_cluster_id}',
                 Tags=updated_tags
             )
-            print(f"Tag 'Schedule' atualizada para {desired_tag_value} no cluster {rds_cluster_id} na região {region}")
+            print(f"Tag 'Schedule' atualizada para {desired_tag_value} no cluster {rds_cluster_id}")
         else:
-            print(f"O cluster {rds_cluster_id} na região {region} não possui a tag 'Schedule', sem atualização necessária.")
+            print(f"O cluster {rds_cluster_id} não possui a tag 'Schedule', sem atualização necessária.")
         
     except Exception as e:
         print(f"Erro ao atualizar o cluster {rds_cluster_id} na região {region}: {str(e)}")
@@ -65,7 +64,6 @@ def lambda_handler(event, context):
     for region in regions:
         for rds_cluster_id in list__clusters_rds:
             update_tag_schedule(client, region, rds_cluster_id, desired_tag_value)
-
         
         
 if __name__ == "__main__":
