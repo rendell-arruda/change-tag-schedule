@@ -1,33 +1,67 @@
+'''
+O  intuito desse script é verificar se o cluster está com a tag Schedule com o valor running, caso não esteja, ele irá atualizar a tag para running.
+Os parâmetros que devem ser alterados são:
+- account_id: ID da conta AWS
+- regions: Lista de regiões que devem ser verificadas
+- rds_clusters_name: Lista de clusters que devem ser verificados
+- profile_name: Nome do profile que será utilizado para realizar a autenticação na AWS
+- tag_key: Nome da tag que será verificada
+- tag_value: Valor da tag que será verificada
+'''
+
 import boto3
-
-account_id = "471112936182"
+account_id = "266549158321"
 regions = ["us-east-1"]
+list__clusters_rds = ["rds-test-tag-schedule"]
 
-# rds_clusters_name = ["cluster-rds-tag", "rds-test-tag-schedule", "cluster3"]
-rds_clusters_name = ["rds-test-tag-schedule"]
 
-session = boto3.Session(profile_name="sandbox")
-
-def update_tag_to_running(rds_client, region, rds_cluster_id):
+def update_tag_schedule(client, region, rds_cluster_id):
+    # faz o descibre do cluster:
     try:
-        response = rds_client.list_tags_for_resource(
+        response = client.list_tags_for_resource(
             ResourceName=f'arn:aws:rds:{region}:{account_id}:db:{rds_cluster_id}'
         )
         current_tags = response['TagList']
         
-        for tag in current_tags:
-            if tag['Key'] == 'Schedule':
-                print(tag['Value'])
+        schedule_tag = next((tag for tag in current_tags if tag['Key'] == 'Schedule'), None)
+        
+        if schedule_tag:
+            updated_tags = [{'Key': 'Schedule', 'Value': 'running'}]
+            client.add_tags_to_resource(
+                ResourceName=f'arn:aws:rds:{region}:{account_id}:db:{rds_cluster_id}',
+                # ResourceName=f'arn:aws:rds:{region}:{account_id}:cluster:{rds_cluster_id}',
+                Tags=updated_tags
+            )
+            print(f"Tag 'Schedule' atualizada para 'running' no cluster {rds_cluster_id} na região {region}")
+        else:
+            print(f"O cluster {rds_cluster_id} na região {region} não possui a tag 'Schedule', sem atualização necessária.")
         
     except Exception as e:
         print(f"Erro ao atualizar o cluster {rds_cluster_id} na região {region}: {str(e)}")
         
-def lambda_handler():
+def lambda_handler(event, context):
+    sts_connection = boto3.client('sts')
+    acct_b = sts_connection.assume_role(
+        RoleArn="arn:aws:iam::266549158321:role/role-secundary-describe-rds",
+        RoleSessionName="cross_acct_lambda"
+    )
+
+    ACCESS_KEY = acct_b['Credentials']['AccessKeyId']
+    SECRET_KEY = acct_b['Credentials']['SecretAccessKey']
+    SESSION_TOKEN = acct_b['Credentials']['SessionToken']
+
+    # create service client using the assumed role credentials, e.g. S3
+    client = boto3.client(
+        'rds',
+        aws_access_key_id=ACCESS_KEY,
+        aws_secret_access_key=SECRET_KEY,
+        aws_session_token=SESSION_TOKEN,
+    )
+    
     for region in regions:
-        rds_client = session.client('rds', region_name=region)
-        
-        for rds_cluster_id in rds_clusters_name:
-            update_tag_to_running(rds_client, region, rds_cluster_id)
+        for rds_cluster_id in list__clusters_rds:
+            update_tag_schedule(client, region, rds_cluster_id)
+
         
         
 if __name__ == "__main__":
