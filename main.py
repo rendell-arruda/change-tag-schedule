@@ -12,10 +12,10 @@ Os parâmetros que devem ser alterados são:
 '''
 
 import boto3
-account_id = "266549158321"
+account_id = "000000000000"
 regions = ["us-east-1"]
-list__clusters_rds = ["rds-test-tag-schedule", "cluster-fake-cartoes"]
-desired_tag_value = "sp-office-hours3"
+list__clusters_rds = ["rds-name-cluster", "rds-name-cluster2"]
+desired_tag_value = "running"
 
 
 def update_tag_schedule(client, region, rds_cluster_id, desired_tag_value):
@@ -45,7 +45,7 @@ def update_tag_schedule(client, region, rds_cluster_id, desired_tag_value):
 def lambda_handler(event, context):
     sts_connection = boto3.client('sts')
     acct_b = sts_connection.assume_role(
-        RoleArn="arn:aws:iam::266549158321:role/role-secundary-describe-rds",
+        RoleArn="arn:aws:iam::ACCOUNTID:role/ROLE-CONTA-SECUNDÁRIA",
         RoleSessionName="cross_acct_lambda"
     )
 
