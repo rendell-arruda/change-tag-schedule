@@ -3,8 +3,8 @@ import os
 
 # Recupera as variáveis de ambiente definidas no Lambda
 account_id = os.environ.get("ACCOUNT_ID")
-regions = os.environ.get("REGIONS").split(",")  # Exemplo: "us-east-1,us-west-1"
-list_clusters_rds = [cluster.strip() for cluster in os.environ.get("RDS_CLUSTERS").split(",")]  # Remove espaços em branco
+region = os.environ.get("REGION") 
+list_clusters_rds = [cluster.strip() for cluster in os.environ.get("RDS_CLUSTERS").split(",")]  
 desired_tag_value = os.environ.get("DESIRED_TAG_VALUE")
 
 def update_tag_schedule(client, region, rds_cluster_id, tag_value):
@@ -47,6 +47,5 @@ def lambda_handler(event, context):
         aws_session_token=SESSION_TOKEN,
     )
     
-    for region in regions:
-        for rds_cluster_id in list_clusters_rds:
-            update_tag_schedule(client, region, rds_cluster_id, desired_tag_value)
+    for rds_cluster_id in list_clusters_rds:
+        update_tag_schedule(client, region, rds_cluster_id, desired_tag_value)
